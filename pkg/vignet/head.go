@@ -48,8 +48,6 @@ func (s Service) HandleHead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("X-Vith-Bitrate", fmt.Sprintf("%d", bitrate))
-	w.Header().Set("X-Vith-Duration", fmt.Sprintf("%.3f", duration))
 	w.Header().Set("X-Vignet-Bitrate", fmt.Sprintf("%d", bitrate))
 	w.Header().Set("X-Vignet-Duration", fmt.Sprintf("%.3f", duration))
 
