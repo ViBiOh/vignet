@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -o nounset -o pipefail -o errexit
+
+script_dir() {
+  local FILE_SOURCE="${BASH_SOURCE[0]}"
+
+  if [[ -L ${FILE_SOURCE} ]]; then
+    dirname "$(readlink "${FILE_SOURCE}")"
+  else
+    (
+      cd "$(dirname "${FILE_SOURCE}")" && pwd
+    )
+  fi
+}
+
+main() {
+  local SCRIPT_DIR
+  SCRIPT_DIR="$(script_dir)"
+
+  local DESTINATION_FOLDER="${SCRIPT_DIR}/ffmpeg"
+
+  for arch in amd64 arm64 armhf; do
+    local ARCHIVE_NAME="ffmpeg-release-${arch}-static.tar.xz"
+
+    local DESTINATION_ARCH="${arch}"
+    if [[ ${DESTINATION_ARCH} == "armhf" ]]; then
+      DESTINATION_ARCH="arm"
+    fi
+
+    local TARGET_NAME="${DESTINATION_FOLDER}/linux/${DESTINATION_ARCH}"
+
+    if [[ -e "${TARGET_NAME}/ffmpeg" ]]; then
+      printf "File already present for linux/%s, skipping download." "${arch}"
+      continue
+    fi
+
+    printf "Downloading static ffmpeg for linux/%s" "${arch}"
+
+    curl --disable --silent --show-error --location --max-time 600 --remote-name "https://johnvansickle.com/ffmpeg/releases/${ARCHIVE_NAME}"
+    mkdir -p "${TARGET_NAME}"
+    tar -xf "${ARCHIVE_NAME}" -C "${TARGET_NAME}" --strip 1
+    rm -rf "${ARCHIVE_NAME}"
+  done
+}
+
+main "${@}"

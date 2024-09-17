@@ -1,0 +1,76 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vignet
+  namespace: default
+spec:
+  interval: 120m
+  chart:
+    spec:
+      chart: app
+      version: "0.1.2"
+      sourceRef:
+        kind: HelmRepository
+        name: vibioh
+      interval: 120m
+  install:
+    crds: Skip
+  maxHistory: 3
+  upgrade:
+    remediation:
+      retries: 3
+  rollback:
+    cleanupOnFail: true
+  values:
+    nameOverride: vignet
+    image:
+      name: vibioh/vignet
+      tag: "202409130930" # {"$imagepolicy": "default:flux-vignet-api:tag"}
+    labels:
+      tags.datadoghq.com/env: "production"
+      tags.datadoghq.com/service: "vignet"
+      tags.datadoghq.com/version: "202409130930" # {"$imagepolicy": "default:flux-vignet-api:tag"}
+    env:
+      - name: GOMAXPROCS
+        valueFrom:
+          resourceFieldRef:
+            resource: limits.cpu
+      - name: GOMEMLIMIT
+        valueFrom:
+          resourceFieldRef:
+            resource: limits.memory
+      - name: VERSION
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels['tags.datadoghq.com/version']
+      - name: OTEL_SERVICE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels['tags.datadoghq.com/service']
+    strategy:
+      type: Recreate
+    volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: vignet
+    volumeMounts:
+      - name: data
+        mountPath: /data
+    config:
+      OTEL_RESOURCE_ATTRIBUTES: env=production,git.repository_url=github.com/ViBiOh/vignet
+      VIGNET_LOGGER_JSON: "true"
+      VIGNET_PPROF_AGENT: http://datadog.observability:8126
+      VIGNET_STORAGE_FILE_SYSTEM_DIRECTORY: "/data"
+      VIGNET_TELEMETRY_URL: datadog.observability:4317
+    secrets:
+      VIGNET_AMQP_URI: AgB6KA3PIGrgkh1VSzZTAILwMrarWvRjsktCGCrymwA7w6DqvDTzLwA2UlfxqSmCSkxm1D105HlaXWhp1MszYkvVeGVANvbYozViCHCC5LudSI6zPbmnuqsHmGWOXVa8g6dLSNyRNnj6u8MzKwClSrreEsKdo3q9YDvpIe3PtwMhjqAq3fOOtjoXyxnyyj4KlksfMYfCcp+VhT0pB04poSvyNwz0TYxJqkOXG/kUOhAOuI6HG2286QcyzJa9QRps+iiJXFNJ2pw8QeGB5v+T6ijmFeVrwQKXYhvt42WsutXovjKwxDpzBTOfSkE4M67bhVgC1JMP6Fqz3Tc6P9O0WZRGDNV1U2pXKHYBuYplkIXmAr2KabIv1l2pDiCINrzQGdkUc9r7aSFL6nIKFAmLNb+47Hyv80ViHHG5kOfM2xwspcOdzj1zJ49RfGne8toHZYfuFvAC1u5RpSTI9fO4OeIoMh4rXl8yE4eNiqT3o46cN7Fsj3UhPfr3bHx6UG+9xFrC/cvRPf8UNi28XT24Rvi3zD5bK66BCYX8jBFidicbMQgL/D/HWb5iDYzo8Y2n4YE1qPib5dvRpLxWQEZOQWHirk4jKtxg3L/WZmETHQd+P97T1Hp7Chch+RBAx2vvImb07/RvLfDr7sR+PD9T6HMPvifiawsFW15hMfwnQYN5nv9iYiCJbJaRvO6XI9r8Ts8ynkJMDgbzRfArnHPGEKLtmy5RR9wd28qCn7KTwXNby92gr1NhQsa+XTuIAciYBFCj
+    resources:
+      limits:
+        memory: "1Gi"
+      requests:
+        memory: "256Mi"
+    securityContext:
+      runAsGroup: 1000
+      runAsUser: 1000
+    autoscaling:
+      enabled: false
