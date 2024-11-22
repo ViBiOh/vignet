@@ -25,11 +25,11 @@ spec:
     nameOverride: vignet
     image:
       name: vibioh/vignet
-      tag: "202411111250" # {"$imagepolicy": "default:flux-vignet-api:tag"}
+      tag: "202411220927" # {"$imagepolicy": "default:flux-vignet-api:tag"}
     labels:
       tags.datadoghq.com/env: "production"
       tags.datadoghq.com/service: "vignet"
-      tags.datadoghq.com/version: "202411111250" # {"$imagepolicy": "default:flux-vignet-api:tag"}
+      tags.datadoghq.com/version: "202411220927" # {"$imagepolicy": "default:flux-vignet-api:tag"}
     env:
       - name: GOMAXPROCS
         valueFrom:
