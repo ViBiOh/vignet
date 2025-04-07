@@ -15,20 +15,9 @@ The HTTP API is pretty simple :
 
 Golang binary is built with static link. You can download it directly from the [GitHub Release page](https://github.com/ViBiOh/vignet/releases) or build it by yourself by cloning this repo and running `make`.
 
-A Docker image is available for `amd64`, `arm` and `arm64` platforms on Docker Hub: [vibioh/vignet](https://hub.docker.com/r/vibioh/vignet/tags).
-
 You can configure app by passing CLI args or environment variables (cf. [Usage](#usage) section). CLI override environment variables.
 
 You'll find a Kubernetes exemple in the [`infra/`](infra) folder, using my [`app chart`](https://github.com/ViBiOh/charts/tree/main/app)
-
-## CI
-
-Following variables are required for CI:
-
-|      Name       |           Purpose           |
-| :-------------: | :-------------------------: |
-| **DOCKER_USER** | for publishing Docker image |
-| **DOCKER_PASS** | for publishing Docker image |
 
 ## Usage
 
