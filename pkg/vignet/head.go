@@ -75,7 +75,7 @@ func (s Service) getVideoDetails(ctx context.Context, inputName string) (bireate
 }
 
 func parseFfprobeOutput(raw string) (bitrate int64, duration float64, err error) {
-	for _, output := range strings.Split(strings.Trim(raw, "\n"), "\n") {
+	for output := range strings.SplitSeq(strings.Trim(raw, "\n"), "\n") {
 		if bitrate == 0 {
 			bitrate, err = strconv.ParseInt(output, 10, 64)
 			if err != nil {
