@@ -31,10 +31,6 @@ spec:
       tags.datadoghq.com/service: "vignet"
       tags.datadoghq.com/version: "202508142347" # {"$imagepolicy": "default:flux-vignet-api:tag"}
     env:
-      - name: GOMAXPROCS
-        valueFrom:
-          resourceFieldRef:
-            resource: limits.cpu
       - name: GOMEMLIMIT
         valueFrom:
           resourceFieldRef:
