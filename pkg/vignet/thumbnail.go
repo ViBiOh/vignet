@@ -156,7 +156,7 @@ func (s Service) generateHeicMap(ctx context.Context, inputName string) (output 
 
 	output = hash.String(inputName) + "_%d.jpeg"
 
-	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
+	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-v", "quiet", "-i", inputName, "-map", "0", output)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
