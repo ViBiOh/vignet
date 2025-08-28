@@ -45,6 +45,11 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffmpeg_thumbnail")
 	defer end(&err)
 
+	if path.Ext(inputName) == ".heic" {
+		tile, err := s.getHeicDetails(ctx, inputName)
+		slog.Info("HEIC tile=%s, err=%s", tile, err)
+	}
+
 	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("crop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
@@ -119,6 +124,26 @@ func (s Service) getVideoDetailsFromLocal(ctx context.Context, name string) (int
 	defer closeWithLog(ctx, reader, "getVideoBitrate", name)
 
 	return s.getVideoDetails(ctx, name)
+}
+
+func (s Service) getHeicDetails(ctx context.Context, inputName string) (tile string, err error) {
+	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
+	defer end(&err)
+
+	cmd := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-print_format", "json", "-show_stream_groups", inputName)
+
+	buffer := bufferPool.Get().(*bytes.Buffer)
+	defer bufferPool.Put(buffer)
+
+	buffer.Reset()
+	cmd.Stdout = buffer
+	cmd.Stderr = buffer
+
+	if err = cmd.Run(); err != nil {
+		return "", fmt.Errorf("ffprobe error `%s`: %s", err, buffer.String())
+	}
+
+	return getTileFromStreamGroups(buffer.Bytes())
 }
 
 func qualityForScale(scale uint64) string {

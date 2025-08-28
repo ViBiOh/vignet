@@ -54,7 +54,7 @@ func (s Service) HandleHead(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s Service) getVideoDetails(ctx context.Context, inputName string) (bireate int64, duration float64, err error) {
+func (s Service) getVideoDetails(ctx context.Context, inputName string) (bitrate int64, duration float64, err error) {
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
 	defer end(&err)
 
