@@ -48,12 +48,11 @@ func getTileFromStreamGroups(payload []byte) (string, error) {
 		return "", errors.New("no stream group sub component")
 	}
 
-	var horizontal, vertical uint
-
-	var previousVerticalOffset int
+	var horizontal, vertical, previousVerticalOffset int
 
 	for _, component := range content.StreamGroups[0].Components[0].Subcomponents {
 		if previousVerticalOffset != component.TileVerticalOffset {
+			previousVerticalOffset = component.TileVerticalOffset
 			vertical += 1
 		}
 

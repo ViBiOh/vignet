@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	absto "github.com/ViBiOh/absto/pkg/model"
+	"github.com/ViBiOh/httputils/v4/pkg/hash"
 	"github.com/ViBiOh/httputils/v4/pkg/telemetry"
 	"github.com/ViBiOh/vignet/pkg/model"
 )
@@ -47,7 +48,10 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 
 	if path.Ext(inputName) == ".heic" {
 		tile, err := s.getHeicDetails(ctx, inputName)
-		slog.Info("HEIC tile=%s, err=%s", tile, err)
+		slog.Info(fmt.Sprintf("HEIC tile=%s, err=%s", tile, err))
+
+		outputname, err := s.generateHeicMap(ctx, inputName)
+		slog.Info(fmt.Sprintf("HEIC map=%s, err=%s", outputname, err))
 	}
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("crop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
@@ -144,6 +148,28 @@ func (s Service) getHeicDetails(ctx context.Context, inputName string) (tile str
 	}
 
 	return getTileFromStreamGroups(buffer.Bytes())
+}
+
+func (s Service) generateHeicMap(ctx context.Context, inputName string) (output string, err error) {
+	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
+	defer end(&err)
+
+	output = hash.String(inputName) + "_%d.jpeg"
+
+	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
+
+	buffer := bufferPool.Get().(*bytes.Buffer)
+	defer bufferPool.Put(buffer)
+
+	buffer.Reset()
+	cmd.Stdout = buffer
+	cmd.Stderr = buffer
+
+	if err = cmd.Run(); err != nil {
+		return "", fmt.Errorf("ffmpeg map: %s: %w", buffer.String(), err)
+	}
+
+	return output, nil
 }
 
 func qualityForScale(scale uint64) string {
