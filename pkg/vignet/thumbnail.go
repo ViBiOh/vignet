@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 
 	absto "github.com/ViBiOh/absto/pkg/model"
@@ -46,15 +47,29 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffmpeg_thumbnail")
 	defer end(&err)
 
+	var formatOption string
+
 	if path.Ext(inputName) == ".heic" {
 		tile, err := s.getHeicDetails(ctx, inputName)
-		slog.Info(fmt.Sprintf("HEIC tile=%s, err=%s", tile, err))
+		if err != nil {
+			return fmt.Errorf("get heic tiling: %w", err)
+		}
 
-		outputname, err := s.generateHeicMap(ctx, inputName)
-		slog.Info(fmt.Sprintf("HEIC map=%s, err=%s", outputname, err))
+		formatOption += "tile=" + tile + ","
+
+		inputName, err = s.generateHeicMap(ctx, inputName)
+		if err != nil {
+			return fmt.Errorf("render heic map: %w", err)
+		}
+
+		defer func() {
+			if err := s.rmDir(path.Dir(inputName)); err != nil {
+				slog.Error("Unable to clean heic temp files", slog.Any("error", err))
+			}
+		}()
 	}
 
-	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("crop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
+	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -154,7 +169,7 @@ func (s Service) generateHeicMap(ctx context.Context, inputName string) (output 
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
 	defer end(&err)
 
-	output = hash.String(inputName) + "_%d.jpeg"
+	output = filepath.Join(s.tmpFolder, hash.String(inputName), "part_%d.jpeg")
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", "-v", "error", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
 

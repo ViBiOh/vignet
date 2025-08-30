@@ -133,6 +133,27 @@ func copyLocalFile(ctx context.Context, name string, output io.Writer) error {
 	return nil
 }
 
+func (s Service) rmDir(name string) error {
+	files, err := os.ReadDir(name)
+	if err != nil {
+		return fmt.Errorf("read dir: %w", err)
+	}
+
+	for _, file := range files {
+		path := filepath.Join(name, file.Name())
+
+		if file.IsDir() {
+			if err := s.rmDir(path); err != nil {
+				return fmt.Errorf("rm dir `%s`: %w", path, err)
+			}
+		} else if err := os.Remove(path); err != nil {
+			return fmt.Errorf("remove `%s`: %w", path, err)
+		}
+	}
+
+	return os.Remove(name)
+}
+
 func cleanLocalFile(ctx context.Context, name string) {
 	if len(name) == 0 {
 		return
