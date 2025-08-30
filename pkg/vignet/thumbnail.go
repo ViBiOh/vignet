@@ -169,7 +169,13 @@ func (s Service) generateHeicMap(ctx context.Context, inputName string) (output 
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
 	defer end(&err)
 
-	output = filepath.Join(s.tmpFolder, hash.String(inputName), "part_%d.jpeg")
+	output = filepath.Join(s.tmpFolder, hash.String(inputName))
+
+	if err := os.MkdirAll(output, 0o700); err != nil {
+		return output, fmt.Errorf("create dir `%s`: %w", output, err)
+	}
+
+	output = filepath.Join(output, "part_%d.jpeg")
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", "-v", "error", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
 
