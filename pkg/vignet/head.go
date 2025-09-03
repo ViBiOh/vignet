@@ -81,7 +81,7 @@ func parseFfprobeOutput(raw string) (bitrate int64, duration float64, err error)
 			if err != nil {
 				if duration != 0 {
 					err = fmt.Errorf("parse bitrate `%s`: %w", output, err)
-					return
+					return bitrate, duration, err
 				}
 			} else {
 				continue
@@ -92,10 +92,10 @@ func parseFfprobeOutput(raw string) (bitrate int64, duration float64, err error)
 			duration, err = strconv.ParseFloat(output, 64)
 			if err != nil && bitrate != 0 {
 				err = fmt.Errorf("parse duration `%s`: %w", output, err)
-				return
+				return bitrate, duration, err
 			}
 		}
 	}
 
-	return
+	return bitrate, duration, err
 }

@@ -135,17 +135,13 @@ func (s Service) getOutputStreamName(ctx context.Context, name string) (localNam
 
 	switch s.storage.Name() {
 	case filesystem.Name:
-		localName = s.storage.Path(name)
-		return
+		return s.storage.Path(name), onEnd, err
 
 	case s3.Name:
-		localName = filepath.Join(s.tmpFolder, path.Base(name))
-		onEnd = s.finalizeStreamForS3(ctx, localName, name)
-		return
+		return filepath.Join(s.tmpFolder, path.Base(name)), s.finalizeStreamForS3(ctx, localName, name), err
 
 	default:
-		err = fmt.Errorf("unknown storage app")
-		return
+		return localName, onEnd, errors.New("unknown storage app")
 	}
 }
 

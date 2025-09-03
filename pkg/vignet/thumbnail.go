@@ -22,8 +22,7 @@ const thumbnailDuration = 5
 
 func (s Service) storageThumbnail(ctx context.Context, itemType model.ItemType, input, output string, scale uint64) (err error) {
 	if err = s.storage.Mkdir(ctx, path.Dir(output), absto.DirectoryPerm); err != nil {
-		err = fmt.Errorf("create directory for output: %w", err)
-		return
+		return fmt.Errorf("create directory for output: %w", err)
 	}
 
 	var inputName string
