@@ -107,12 +107,8 @@ func (s Service) videoThumbnail(ctx context.Context, inputName, outputName strin
 	}
 
 	format := fmt.Sprintf("crop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", scale, scale)
-	if scale == SmallSize {
-		ffmpegOpts = append(ffmpegOpts, "-t", strconv.Itoa(thumbnailDuration))
-		customOpts = []string{"-r", "8", "-loop", "0"}
-	} else {
-		customOpts = []string{"-frames:v", "1"}
-	}
+	ffmpegOpts = append(ffmpegOpts, "-t", strconv.Itoa(thumbnailDuration))
+	customOpts = []string{"-r", "8", "-loop", "0"}
 
 	ffmpegOpts = append(ffmpegOpts, "-i", inputName, "-map_metadata", "-1", "-vf", format, "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp")
 	ffmpegOpts = append(ffmpegOpts, customOpts...)
