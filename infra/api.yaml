@@ -25,11 +25,11 @@ spec:
     nameOverride: vignet
     image:
       name: rg.fr-par.scw.cloud/vibioh/vignet
-      tag: "202510270824" # {"$imagepolicy": "default:flux-vignet-api:tag"}
+      tag: "202511011259" # {"$imagepolicy": "default:flux-vignet-api:tag"}
     labels:
       tags.datadoghq.com/env: "production"
       tags.datadoghq.com/service: "vignet"
-      tags.datadoghq.com/version: "202510270824" # {"$imagepolicy": "default:flux-vignet-api:tag"}
+      tags.datadoghq.com/version: "202511011259" # {"$imagepolicy": "default:flux-vignet-api:tag"}
     env:
       - name: GOMEMLIMIT
         valueFrom:
