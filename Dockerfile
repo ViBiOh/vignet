@@ -2,7 +2,7 @@ FROM alpine
 
 EXPOSE 1080
 
-HEALTHCHECK --retries=10 CMD [ "/vignet", "-url", "http://localhost:1080/health" ]
+HEALTHCHECK --retries=10 CMD [ "/vignet", "-url", "http://127.0.0.1:1080/health" ]
 ENTRYPOINT [ "/vignet" ]
 
 VOLUME /tmp
