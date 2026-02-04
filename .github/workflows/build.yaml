@@ -75,6 +75,7 @@ jobs:
           DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
           DOCKER_NAMESPACE: ${{ vars.DOCKER_NAMESPACE }}
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          DOCKER_ARCHS: linux/amd64 linux/arm64
         run: |
           ./download_ffmpeg
           curl --disable --silent --show-error --location --max-time 30 "https://raw.githubusercontent.com/ViBiOh/scripts/main/bootstrap.sh" | bash -s -- "-c" "release.sh"
