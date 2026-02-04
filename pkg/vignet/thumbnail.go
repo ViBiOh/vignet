@@ -48,10 +48,12 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 
 	var formatOption string
 
+	realName := inputName
+
 	if path.Ext(inputName) == ".heic" {
 		tile, rotation, err := s.getHeicDetails(ctx, inputName)
 		if err != nil {
-			return fmt.Errorf("get heic tiling: %w", err)
+			return fmt.Errorf("get heic details: %w", err)
 		}
 
 		formatOption += "tile=" + tile + ","
@@ -60,6 +62,8 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 		if err != nil {
 			return fmt.Errorf("render heic map: %w", err)
 		}
+
+		slog.InfoContext(ctx, "HEIC Rotation is "+strconv.Itoa(rotation), slog.String("input", realName))
 
 		if rotation != 0 {
 			if rotation < 0 {
@@ -76,7 +80,7 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 		}()
 	}
 
-	slog.InfoContext(ctx, "Generating image thumbnail", slog.String("filter", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale)), slog.String("input", inputName), slog.String("quality", qualityForScale(scale)))
+	slog.InfoContext(ctx, "Generating image thumbnail", slog.String("filter", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale)), slog.String("input", realName), slog.String("quality", qualityForScale(scale)))
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
 

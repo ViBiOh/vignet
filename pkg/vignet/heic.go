@@ -27,7 +27,6 @@ type ffprobeStreamGroups struct {
 		Index     int `json:"index"`
 		NbStreams int `json:"nb_streams"`
 	} `json:"stream_groups"`
-
 	Streams []struct {
 		SideDataList []struct {
 			Rotation int `json:"rotation,omitempty"`
