@@ -18,8 +18,8 @@ ARG TARGETARCH
 
 USER 65534
 
-COPY ffmpeg/${TARGETOS}/${TARGETARCH}/ffmpeg /usr/bin/ffmpeg
-COPY ffmpeg/${TARGETOS}/${TARGETARCH}/ffprobe /usr/bin/ffprobe
+COPY ffmpeg/${TARGETOS}/${TARGETARCH}/bin/ffmpeg /usr/bin/ffmpeg
+COPY ffmpeg/${TARGETOS}/${TARGETARCH}/bin/ffprobe /usr/bin/ffprobe
 
 COPY wait_${TARGETOS}_${TARGETARCH} /wait
 

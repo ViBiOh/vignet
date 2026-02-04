@@ -29,12 +29,12 @@ main() {
     unzip "ffprobe.zip" -d "${DESTINATION_FOLDER}"
     rm -f "ffprobe.zip"
   else
-    for arch in amd64 arm64 armhf; do
-      local ARCHIVE_NAME="ffmpeg-release-${arch}-static.tar.xz"
+    for arch in 64 arm64; do
+      local ARCHIVE_NAME="ffmpeg-master-latest-linux${arch}-gpl.tar.xz"
 
       local DESTINATION_ARCH="${arch}"
-      if [[ ${DESTINATION_ARCH} == "armhf" ]]; then
-        DESTINATION_ARCH="arm"
+      if [[ ${DESTINATION_ARCH} == "64" ]]; then
+        DESTINATION_ARCH="amd64"
       fi
 
       local TARGET_NAME="${DESTINATION_FOLDER}/linux/${DESTINATION_ARCH}"
@@ -44,9 +44,9 @@ main() {
         continue
       fi
 
-      printf "Downloading static ffmpeg for linux/%s" "${arch}"
+      printf "Downloading static ffmpeg for linux/%s\n" "${arch}"
 
-      curl --disable --silent --show-error --location --max-time 600 --remote-name "https://johnvansickle.com/ffmpeg/releases/${ARCHIVE_NAME}"
+      curl --disable --silent --show-error --location --max-time 600 --remote-name "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/${ARCHIVE_NAME}"
       mkdir -p "${TARGET_NAME}"
       tar -xf "${ARCHIVE_NAME}" -C "${TARGET_NAME}" --strip 1
       rm -rf "${ARCHIVE_NAME}"
