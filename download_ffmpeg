@@ -20,28 +20,38 @@ main() {
 
   local DESTINATION_FOLDER="${SCRIPT_DIR}/ffmpeg"
 
-  for arch in amd64 arm64 armhf; do
-    local ARCHIVE_NAME="ffmpeg-release-${arch}-static.tar.xz"
+  if [[ ${OSTYPE} =~ ^darwin ]]; then
+    curl --disable --silent --show-error --location --max-time 600 --output "ffmpeg.zip" "https://evermeet.cx/ffmpeg/get/zip"
+    unzip "ffmpeg.zip" -d "${DESTINATION_FOLDER}"
+    rm -f "ffmpeg.zip"
 
-    local DESTINATION_ARCH="${arch}"
-    if [[ ${DESTINATION_ARCH} == "armhf" ]]; then
-      DESTINATION_ARCH="arm"
-    fi
+    curl --disable --silent --show-error --location --max-time 600 --output "ffprobe.zip" "https://evermeet.cx/ffmpeg/get/ffprobe/zip"
+    unzip "ffprobe.zip" -d "${DESTINATION_FOLDER}"
+    rm -f "ffprobe.zip"
+  else
+    for arch in amd64 arm64 armhf; do
+      local ARCHIVE_NAME="ffmpeg-release-${arch}-static.tar.xz"
 
-    local TARGET_NAME="${DESTINATION_FOLDER}/linux/${DESTINATION_ARCH}"
+      local DESTINATION_ARCH="${arch}"
+      if [[ ${DESTINATION_ARCH} == "armhf" ]]; then
+        DESTINATION_ARCH="arm"
+      fi
 
-    if [[ -e "${TARGET_NAME}/ffmpeg" ]]; then
-      printf "File already present for linux/%s, skipping download." "${arch}"
-      continue
-    fi
+      local TARGET_NAME="${DESTINATION_FOLDER}/linux/${DESTINATION_ARCH}"
 
-    printf "Downloading static ffmpeg for linux/%s" "${arch}"
+      if [[ -e "${TARGET_NAME}/ffmpeg" ]]; then
+        printf "File already present for linux/%s, skipping download." "${arch}"
+        continue
+      fi
 
-    curl --disable --silent --show-error --location --max-time 600 --remote-name "https://johnvansickle.com/ffmpeg/releases/${ARCHIVE_NAME}"
-    mkdir -p "${TARGET_NAME}"
-    tar -xf "${ARCHIVE_NAME}" -C "${TARGET_NAME}" --strip 1
-    rm -rf "${ARCHIVE_NAME}"
-  done
+      printf "Downloading static ffmpeg for linux/%s" "${arch}"
+
+      curl --disable --silent --show-error --location --max-time 600 --remote-name "https://johnvansickle.com/ffmpeg/releases/${ARCHIVE_NAME}"
+      mkdir -p "${TARGET_NAME}"
+      tar -xf "${ARCHIVE_NAME}" -C "${TARGET_NAME}" --strip 1
+      rm -rf "${ARCHIVE_NAME}"
+    done
+  fi
 }
 
 main "${@}"

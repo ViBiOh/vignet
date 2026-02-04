@@ -37,6 +37,8 @@ type ffprobeStreamGroups struct {
 func getTileFromStreamGroups(payload []byte) (string, int, error) {
 	var content ffprobeStreamGroups
 
+	fmt.Printf("debugging probe for heic: `%s`", payload)
+
 	if err := json.Unmarshal(payload, &content); err != nil {
 		return "", 0, fmt.Errorf("unmarshal: %w", err)
 	}

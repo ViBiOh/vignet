@@ -32,6 +32,8 @@ Usage of vignet:
   --amqpURI                     string    [amqp] Address in the form amqps?://<user>:<password>@<address>:<port>/<vhost> ${VIGNET_AMQP_URI}
   --cert                        string    [server] Certificate file ${VIGNET_CERT}
   --exchange                    string    [thumbnail] AMQP Exchange Name ${VIGNET_EXCHANGE} (default "fibr")
+  --ffmpegPath                  string    [vignet] ffmpeg path ${VIGNET_FFMPEG_PATH} (default "/usr/bin/ffmpeg")
+  --ffprobePath                 string    [vignet] ffmpeg path ${VIGNET_FFPROBE_PATH} (default "/usr/bin/ffprobe")
   --graceDuration               duration  [http] Grace duration when signal received ${VIGNET_GRACE_DURATION} (default 30s)
   --idleTimeout                 duration  [server] Idle Timeout ${VIGNET_IDLE_TIMEOUT} (default 2m0s)
   --key                         string    [server] Key file ${VIGNET_KEY}
@@ -78,4 +80,5 @@ Usage of vignet:
   --url                         string    [alcotest] URL to check ${VIGNET_URL}
   --userAgent                   string    [alcotest] User-Agent for check ${VIGNET_USER_AGENT} (default "Alcotest")
   --writeTimeout                duration  [server] Write Timeout ${VIGNET_WRITE_TIMEOUT} (default 2m0s)
+
 ```

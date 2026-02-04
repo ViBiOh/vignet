@@ -58,7 +58,7 @@ func (s Service) getVideoDetails(ctx context.Context, inputName string) (bitrate
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
 	defer end(&err)
 
-	cmd := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=bit_rate:format=duration", "-of", "default=noprint_wrappers=1:nokey=1", inputName)
+	cmd := exec.CommandContext(ctx, s.ffprobePath, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=bit_rate:format=duration", "-of", "default=noprint_wrappers=1:nokey=1", inputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)

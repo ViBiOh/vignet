@@ -2,9 +2,10 @@
 /scripts/
 
 # Golang
-bin/
-ffmpeg/
-release/
+/bin/
+/ffmpeg/
+/tmp
+/release/
 coverage.*
 profile.out
 .env

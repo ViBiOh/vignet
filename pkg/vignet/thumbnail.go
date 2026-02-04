@@ -33,14 +33,14 @@ func (s Service) storageThumbnail(ctx context.Context, itemType model.ItemType, 
 		err = fmt.Errorf("get input name: %w", err)
 	} else {
 		outputName, finalizeOutput := s.getOutputName(ctx, output)
-		err = errors.Join(s.getThumbnailGenerator(itemType)(ctx, inputName, outputName, scale), finalizeOutput())
+		err = errors.Join(s.getThumbnailGenerator(itemType)(ctx, inputName, inputName, outputName, scale), finalizeOutput())
 		finalizeInput()
 	}
 
 	return err
 }
 
-func (s Service) imageThumbnail(ctx context.Context, inputName, outputName string, scale uint64) error {
+func (s Service) imageThumbnail(ctx context.Context, realName, inputName, outputName string, scale uint64) error {
 	var err error
 
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffmpeg_thumbnail")
@@ -48,9 +48,7 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 
 	var formatOption string
 
-	realName := inputName
-
-	if path.Ext(inputName) == ".heic" {
+	if path.Ext(realName) == ".heic" {
 		tile, rotation, err := s.getHeicDetails(ctx, inputName)
 		if err != nil {
 			return fmt.Errorf("get heic details: %w", err)
@@ -62,8 +60,6 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 		if err != nil {
 			return fmt.Errorf("render heic map: %w", err)
 		}
-
-		slog.InfoContext(ctx, "HEIC Rotation is "+strconv.Itoa(rotation), slog.String("input", realName))
 
 		if rotation != 0 {
 			if rotation < 0 {
@@ -80,9 +76,7 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 		}()
 	}
 
-	slog.InfoContext(ctx, "Generating image thumbnail", slog.String("filter", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale)), slog.String("input", realName), slog.String("quality", qualityForScale(scale)))
-
-	cmd := exec.CommandContext(ctx, "ffmpeg", "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
+	cmd := exec.CommandContext(ctx, s.ffmpegPath, "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -99,7 +93,7 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 	return nil
 }
 
-func (s Service) videoThumbnail(ctx context.Context, inputName, outputName string, scale uint64) error {
+func (s Service) videoThumbnail(ctx context.Context, _, inputName, outputName string, scale uint64) error {
 	var err error
 
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffmpeg_video_thumbnail")
@@ -127,7 +121,7 @@ func (s Service) videoThumbnail(ctx context.Context, inputName, outputName strin
 	ffmpegOpts = append(ffmpegOpts, "-i", inputName, "-map_metadata", "-1", "-vf", format, "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp")
 	ffmpegOpts = append(ffmpegOpts, customOpts...)
 	ffmpegOpts = append(ffmpegOpts, outputName)
-	cmd := exec.Command("ffmpeg", ffmpegOpts...)
+	cmd := exec.CommandContext(ctx, s.ffmpegPath, ffmpegOpts...)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -158,7 +152,7 @@ func (s Service) getHeicDetails(ctx context.Context, inputName string) (tile str
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
 	defer end(&err)
 
-	cmd := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-print_format", "json", "-show_stream_groups", "-show_entries", "stream_side_data=rotation", inputName)
+	cmd := exec.CommandContext(ctx, s.ffprobePath, "-v", "error", "-print_format", "json", "-show_stream_groups", "-show_entries", "stream_side_data=rotation", inputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -186,7 +180,7 @@ func (s Service) generateHeicMap(ctx context.Context, inputName string) (output 
 
 	output = filepath.Join(output, "part_%d.jpeg")
 
-	cmd := exec.CommandContext(ctx, "ffmpeg", "-v", "error", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
+	cmd := exec.CommandContext(ctx, s.ffmpegPath, "-v", "error", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)

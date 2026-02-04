@@ -23,6 +23,11 @@ func (s Service) HandlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	name := r.URL.Query().Get("name")
+	if len(name) == 0 {
+		name = time.Now().String()
+	}
+
 	scale := defaultScale
 	if rawScale := r.URL.Query().Get("scale"); len(rawScale) > 0 {
 		scale, err = strconv.ParseUint(r.URL.Query().Get("scale"), 10, 64)
@@ -36,14 +41,14 @@ func (s Service) HandlePost(w http.ResponseWriter, r *http.Request) {
 	switch itemType {
 	case model.TypeImage, model.TypeVideo:
 		var inputName string
-		inputName, err = s.saveFileLocally(ctx, r.Body, time.Now().String())
+		inputName, err = s.saveFileLocally(ctx, r.Body, name)
 		defer cleanLocalFile(ctx, inputName)
 
 		if err == nil {
 			outputName := s.getLocalFilename(fmt.Sprintf("output_%s", inputName))
 			defer cleanLocalFile(ctx, outputName)
 
-			if err = s.getThumbnailGenerator(itemType)(r.Context(), inputName, outputName, scale); err == nil {
+			if err = s.getThumbnailGenerator(itemType)(r.Context(), name, inputName, outputName, scale); err == nil {
 				err = copyLocalFile(ctx, outputName, w)
 			}
 		}

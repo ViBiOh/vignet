@@ -28,7 +28,9 @@ var bufferPool = sync.Pool{
 }
 
 type Config struct {
-	TmpFolder string
+	TmpFolder   string
+	FfmpegPath  string
+	FfprobePath string
 
 	AmqpExchange   string
 	AmqpRoutingKey string
@@ -40,6 +42,8 @@ func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) *Config
 	flags.New("TmpFolder", "Folder used for temporary files storage").Prefix(prefix).DocPrefix("vignet").StringVar(fs, &config.TmpFolder, "/tmp", overrides)
 	flags.New("Exchange", "AMQP Exchange Name").Prefix(prefix).DocPrefix("thumbnail").StringVar(fs, &config.AmqpExchange, "fibr", overrides)
 	flags.New("RoutingKey", "AMQP Routing Key to fibr").Prefix(prefix).DocPrefix("thumbnail").StringVar(fs, &config.AmqpRoutingKey, "thumbnail_output", overrides)
+	flags.New("FfmpegPath", "ffmpeg path").Prefix(prefix).DocPrefix("vignet").StringVar(fs, &config.FfmpegPath, "/usr/bin/ffmpeg", overrides)
+	flags.New("FfprobePath", "ffmpeg path").Prefix(prefix).DocPrefix("vignet").StringVar(fs, &config.FfprobePath, "/usr/bin/ffprobe", overrides)
 
 	return &config
 }
@@ -53,14 +57,18 @@ type Service struct {
 	amqpClient         *amqp.Client
 	metric             metric.Int64Counter
 	tmpFolder          string
+	ffmpegPath         string
+	ffprobePath        string
 	amqpExchange       string
 	amqpRoutingKey     string
 }
 
 func New(config *Config, amqpClient *amqp.Client, storageService absto.Storage, meterProvider metric.MeterProvider, tracerProvider trace.TracerProvider) Service {
 	service := Service{
-		tmpFolder: config.TmpFolder,
-		storage:   storageService,
+		tmpFolder:   config.TmpFolder,
+		ffmpegPath:  config.FfmpegPath,
+		ffprobePath: config.FfprobePath,
+		storage:     storageService,
 
 		amqpClient:     amqpClient,
 		amqpExchange:   config.AmqpExchange,
