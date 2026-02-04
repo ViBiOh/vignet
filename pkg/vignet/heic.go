@@ -27,25 +27,31 @@ type ffprobeStreamGroups struct {
 		Index     int `json:"index"`
 		NbStreams int `json:"nb_streams"`
 	} `json:"stream_groups"`
+
+	Streams []struct {
+		SideDataList []struct {
+			Rotation int `json:"rotation,omitempty"`
+		} `json:"side_data_list"`
+	} `json:"streams"`
 }
 
-func getTileFromStreamGroups(payload []byte) (string, error) {
+func getTileFromStreamGroups(payload []byte) (string, int, error) {
 	var content ffprobeStreamGroups
 
 	if err := json.Unmarshal(payload, &content); err != nil {
-		return "", fmt.Errorf("unmarshal: %w", err)
+		return "", 0, fmt.Errorf("unmarshal: %w", err)
 	}
 
 	if len(content.StreamGroups) == 0 {
-		return "", errors.New("no stream group")
+		return "", 0, errors.New("no stream group")
 	}
 
 	if len(content.StreamGroups[0].Components) == 0 {
-		return "", errors.New("no stream group component")
+		return "", 0, errors.New("no stream group component")
 	}
 
 	if len(content.StreamGroups[0].Components[0].Subcomponents) == 0 {
-		return "", errors.New("no stream group sub component")
+		return "", 0, errors.New("no stream group sub component")
 	}
 
 	var horizontal, previousVerticalOffset int
@@ -63,5 +69,20 @@ func getTileFromStreamGroups(payload []byte) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("%dx%d", horizontal, vertical), nil
+	var rotation int
+
+	for _, stream := range content.Streams {
+		for _, data := range stream.SideDataList {
+			if data.Rotation != 0 {
+				rotation = data.Rotation
+				break
+			}
+		}
+
+		if rotation != 0 {
+			break
+		}
+	}
+
+	return fmt.Sprintf("%dx%d", horizontal, vertical), rotation, nil
 }

@@ -49,7 +49,7 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 	var formatOption string
 
 	if path.Ext(inputName) == ".heic" {
-		tile, err := s.getHeicDetails(ctx, inputName)
+		tile, rotation, err := s.getHeicDetails(ctx, inputName)
 		if err != nil {
 			return fmt.Errorf("get heic tiling: %w", err)
 		}
@@ -59,6 +59,14 @@ func (s Service) imageThumbnail(ctx context.Context, inputName, outputName strin
 		inputName, err = s.generateHeicMap(ctx, inputName)
 		if err != nil {
 			return fmt.Errorf("render heic map: %w", err)
+		}
+
+		if rotation != 0 {
+			if rotation < 0 {
+				rotation *= -1
+			}
+
+			formatOption += fmt.Sprintf("rotate=%d*PI/180,", rotation)
 		}
 
 		defer func() {
@@ -140,11 +148,11 @@ func (s Service) getVideoDetailsFromLocal(ctx context.Context, name string) (int
 	return s.getVideoDetails(ctx, name)
 }
 
-func (s Service) getHeicDetails(ctx context.Context, inputName string) (tile string, err error) {
+func (s Service) getHeicDetails(ctx context.Context, inputName string) (tile string, rotation int, err error) {
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffprobe")
 	defer end(&err)
 
-	cmd := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-print_format", "json", "-show_stream_groups", inputName)
+	cmd := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-print_format", "json", "-show_stream_groups", "-show_entries", "stream_side_data=rotation", inputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -154,7 +162,7 @@ func (s Service) getHeicDetails(ctx context.Context, inputName string) (tile str
 	cmd.Stderr = buffer
 
 	if err = cmd.Run(); err != nil {
-		return "", fmt.Errorf("ffprobe error `%s`: %s", err, buffer.String())
+		return "", 0, fmt.Errorf("ffprobe error `%s`: %s", err, buffer.String())
 	}
 
 	return getTileFromStreamGroups(buffer.Bytes())
