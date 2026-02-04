@@ -1,4 +1,4 @@
-FROM alpine
+FROM chisel:22.04
 
 EXPOSE 1080
 
