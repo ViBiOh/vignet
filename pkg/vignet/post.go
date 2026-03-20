@@ -3,6 +3,7 @@ package vignet
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,8 +31,7 @@ func (s Service) HandlePost(w http.ResponseWriter, r *http.Request) {
 
 	scale := defaultScale
 	if rawScale := r.URL.Query().Get("scale"); len(rawScale) > 0 {
-		scale, err = strconv.ParseUint(r.URL.Query().Get("scale"), 10, 64)
-		if err != nil {
+		if scale, err = strconv.ParseUint(r.URL.Query().Get("scale"), 10, 64); err != nil {
 			httperror.BadRequest(ctx, w, fmt.Errorf("parse scale: %w", err))
 			s.increaseMetric(r.Context(), "http", "thumbnail", "", "invalid")
 			return
@@ -49,7 +49,11 @@ func (s Service) HandlePost(w http.ResponseWriter, r *http.Request) {
 			defer cleanLocalFile(ctx, outputName)
 
 			if err = s.getThumbnailGenerator(itemType)(r.Context(), name, inputName, outputName, scale); err == nil {
-				err = copyLocalFile(ctx, outputName, w)
+				if copyErr := copyLocalFile(ctx, outputName, w); copyErr != nil {
+					slog.ErrorContext(ctx, "unable to copy file to HTTP response", slog.Any("error", copyErr))
+					s.increaseMetric(r.Context(), "http", "thumbnail", itemType.String(), "error")
+					return
+				}
 			}
 		}
 
