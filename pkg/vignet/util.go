@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -156,6 +157,10 @@ func (s Service) rmDir(name string) error {
 
 func cleanLocalFile(ctx context.Context, name string) {
 	if len(name) == 0 {
+		return
+	}
+
+	if _, err := os.Stat(name); err != nil && errors.Is(err, fs.ErrNotExist) {
 		return
 	}
 
