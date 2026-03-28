@@ -1,6 +1,7 @@
 package vignet
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -63,8 +64,13 @@ func (s Service) HandlePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		httperror.InternalServerError(ctx, w, err)
 		s.increaseMetric(r.Context(), "http", "thumbnail", itemType.String(), "error")
+
+		if errors.Is(err, context.Canceled) {
+			return
+		}
+
+		httperror.InternalServerError(ctx, w, err)
 		return
 	}
 
