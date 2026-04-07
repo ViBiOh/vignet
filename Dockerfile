@@ -23,5 +23,5 @@ COPY ffmpeg/${TARGETOS}/${TARGETARCH}/bin/ffprobe /usr/bin/ffprobe
 
 COPY wait_${TARGETOS}_${TARGETARCH} /wait
 
-COPY ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY cacert.pem /etc/ssl/cert.pem
 COPY release/vignet_${TARGETOS}_${TARGETARCH} /vignet
