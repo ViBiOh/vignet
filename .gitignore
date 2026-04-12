@@ -11,5 +11,4 @@ profile.out
 .env
 
 # Docker
-ca-certificates.crt
-zoneinfo.zip
+cacert.pem
