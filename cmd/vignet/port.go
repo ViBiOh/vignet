@@ -16,7 +16,8 @@ func newPort(clients clients, services services) http.Handler {
 	mux.HandleFunc("PATCH /", services.vignet.HandlePatch)
 	mux.HandleFunc("DELETE /", services.vignet.HandleDelete)
 
-	return httputils.Handler(mux, clients.health,
+	return httputils.Handler(
+		mux, clients.health,
 		clients.telemetry.Middleware("http"),
 	)
 }
