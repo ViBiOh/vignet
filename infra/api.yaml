@@ -55,7 +55,7 @@ spec:
     config:
       OTEL_RESOURCE_ATTRIBUTES: env=production,git.repository_url=github.com/ViBiOh/vignet
       VIGNET_LOGGER_JSON: "true"
-      VIGNET_PPROF_AGENT: http://datadog.observability:8126
+      VIGNET_PPROF_AGENT: ""
       VIGNET_STORAGE_FILE_SYSTEM_DIRECTORY: "/data"
       VIGNET_TELEMETRY_URL: otel-collector.observability:4317
     secrets:
