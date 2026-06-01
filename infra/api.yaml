@@ -62,7 +62,7 @@ spec:
       VIGNET_AMQP_URI: AgC07xkYPOX21xjC7ghwOd49USmrpYO+/8UwGUI9epuz4CamfQZO0fGI9CymzAWMgE5Z+j5xZiSXegIGdAEHqz0/RSdq65HvhrF814dNvb0r74sHCTkEDwn0u4Gkijtl1BJHzy5HNmEhJCR1TDYlGjT+Y8nsGHzg4cN+q9NUJUbiFMvuxGhNA/ghp025OGgNfdjK0/lQpGVg0ZSP+eR/2mhL8EuEvbO4izfu8nlQ8b2R49ytMZrEUtJoJFluq/2jWVxJR6EcsNyNaZ2i0PHovoOfLE9ndIuHV89zxXaNR3CRZ+t6FWCdON6eiS+Pqch4fxqt6MoIBXqhMo6hG+cdMZ9Y/t9YHboK+3C07Q+otHf00ME8+Fv5/2ERnoUdMKFfkalCDjhDrV5c1UegPv1qNkZPoOWupap7ktnbS6w+ZJ4tVKyPgD9DAbo8uawmfFdnEq75Z62MQfkL4vlTlw7HCzwiCNQSo1DHczaFUrKrULXrUib/L/n05t6BGiCZtkj6bymRuX+D/bC2VsRjh2f0zaAJCilH3SMqeNb/7Fx12mcez1G1UHC3VkAmVbI3jBSCykwRLZZWcatDylYuTXuuA9nfjk+J3lXfzGio5KUo0Jiwq8icEBL+O3VfpoW6HWcDUOVFTFKsE+U5KC2gmMbNmWl/CIi67HesbFbbZvFdxIScKJ1SezEHMhh/HWorwSA20j1RLaRkVF/W/WPDs6dymVobylbLymxjRx+Sq2iFw/yWaeAMfPrQirdN73qBRPZ1lRzg
     resources:
       limits:
-        memory: "1Gi"
+        memory: "2Gi"
       requests:
         memory: "256Mi"
     securityContext:
