@@ -45,7 +45,7 @@ func (s Service) AmqpStreamHandler(ctx context.Context, message amqp.Delivery) e
 	}
 
 	if err = s.storage.Mkdir(ctx, path.Dir(req.Output), absto.DirectoryPerm); err != nil {
-		s.increaseMetric(ctx, "amqp", "thumbnail", req.ItemType.String(), "error")
+		s.increaseMetric(ctx, "amqp", "stream", req.ItemType.String(), "error")
 		return fmt.Errorf("create directory for output: %w", err)
 	}
 

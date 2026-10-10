@@ -33,5 +33,5 @@ func main() {
 	go services.server.Start(clients.health.EndCtx(), port)
 
 	clients.health.WaitForTermination(services.server.Done())
-	health.WaitAll(services.server.Done(), services.streamHandler.Done(), services.thumbnailHandler.Done())
+	health.WaitAll(services.server.Done(), services.vignet.Done(), services.streamHandler.Done(), services.thumbnailHandler.Done())
 }

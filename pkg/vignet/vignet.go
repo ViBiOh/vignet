@@ -48,10 +48,47 @@ func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) *Config
 	return &config
 }
 
+type GatedQueue[T any] struct {
+	ch     chan T
+	mutex  sync.RWMutex
+	closed bool
+}
+
+func NewGatedQueue[T any](ch chan T) *GatedQueue[T] {
+	return &GatedQueue[T]{ch: ch}
+}
+
+func (gq *GatedQueue[T]) Send(ctx context.Context, content T) bool {
+	gq.mutex.RLock()
+	defer gq.mutex.RUnlock()
+
+	if gq.closed {
+		return false
+	}
+
+	select {
+	case gq.ch <- content:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+}
+
+func (gq *GatedQueue[T]) Close() {
+	gq.mutex.Lock()
+	defer gq.mutex.Unlock()
+
+	if gq.closed {
+		return
+	}
+
+	gq.closed = true
+	close(gq.ch)
+}
+
 type Service struct {
 	done               chan struct{}
-	stop               chan struct{}
-	streamRequestQueue chan model.Request
+	streamRequestQueue *GatedQueue[model.Request]
 	storage            absto.Storage
 	tracer             trace.Tracer
 	amqpClient         *amqp.Client
@@ -74,8 +111,7 @@ func New(config *Config, amqpClient *amqp.Client, storageService absto.Storage, 
 		amqpExchange:   config.AmqpExchange,
 		amqpRoutingKey: config.AmqpRoutingKey,
 
-		streamRequestQueue: make(chan model.Request, 4),
-		stop:               make(chan struct{}),
+		streamRequestQueue: NewGatedQueue(make(chan model.Request, 4)),
 		done:               make(chan struct{}),
 	}
 

@@ -36,10 +36,10 @@ func (s Service) HandlePut(w http.ResponseWriter, r *http.Request) {
 
 	slog.LogAttrs(ctx, slog.LevelInfo, "Adding stream generation in the work queue", slog.String("input", r.URL.Path))
 
-	select {
-	case s.streamRequestQueue <- model.NewRequest(r.URL.Path, output, itemType, defaultScale):
+	if s.streamRequestQueue.Send(ctx, model.NewRequest(r.URL.Path, output, itemType, defaultScale)) {
 		w.WriteHeader(http.StatusAccepted)
-	case <-s.stop:
-		w.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
+
+	w.WriteHeader(http.StatusServiceUnavailable)
 }

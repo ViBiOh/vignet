@@ -24,42 +24,25 @@ func (s Service) Done() <-chan struct{} {
 
 func (s Service) Start(ctx context.Context) {
 	defer close(s.done)
-	defer close(s.streamRequestQueue)
-	defer s.stopOnce()
 
 	if !s.storage.Enabled() {
+		s.streamRequestQueue.Close()
 		return
 	}
 
-	done := ctx.Done()
-
 	go func() {
-		defer s.stopOnce()
-
-		select {
-		case <-done:
-		case <-s.done:
-		}
+		<-ctx.Done()
+		s.streamRequestQueue.Close()
 	}()
 
-	for req := range s.streamRequestQueue {
+	for req := range s.streamRequestQueue.ch {
 		if err := s.generateStream(context.Background(), req); err != nil {
 			slog.LogAttrs(ctx, slog.LevelError, "generate stream", slog.Any("error", err))
 		}
 	}
 }
 
-func (s Service) stopOnce() {
-	select {
-	case <-s.stop:
-	default:
-		close(s.stop)
-	}
-}
-
-func (s Service) generateStream(ctx context.Context, req model.Request) error {
-	var err error
-
+func (s Service) generateStream(ctx context.Context, req model.Request) (err error) {
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "stream")
 	defer end(&err)
 
@@ -138,7 +121,8 @@ func (s Service) getOutputStreamName(ctx context.Context, name string) (localNam
 		return s.storage.Path(name), onEnd, err
 
 	case s3.Name:
-		return filepath.Join(s.tmpFolder, path.Base(name)), s.finalizeStreamForS3(ctx, localName, name), err
+		localName = filepath.Join(s.tmpFolder, path.Base(name))
+		return localName, s.finalizeStreamForS3(ctx, localName, name), err
 
 	default:
 		return localName, onEnd, errors.New("unknown storage app")
@@ -167,7 +151,7 @@ func (s Service) finalizeStreamForS3(ctx context.Context, localName, destName st
 		}
 
 		if cleanErr := s.cleanLocalStream(ctx, localName); cleanErr != nil {
-			return fmt.Errorf("clean stream for `%s`: %w", localName, err)
+			return fmt.Errorf("clean stream for `%s`: %w", localName, cleanErr)
 		}
 
 		return nil

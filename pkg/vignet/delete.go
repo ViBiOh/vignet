@@ -34,6 +34,7 @@ func (s Service) HandleDelete(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.cleanStream(ctx, r.URL.Path, s.storage.RemoveAll, s.listFiles, `.*\.ts`); err != nil {
 		httperror.InternalServerError(ctx, w, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
