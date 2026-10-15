@@ -76,7 +76,7 @@ func (s Service) imageThumbnail(ctx context.Context, realName, inputName, output
 		}()
 	}
 
-	cmd := exec.CommandContext(ctx, s.ffmpegPath, "-hwaccel", "auto", "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
+	cmd := s.ffmpegCommand(ctx, "-i", inputName, "-map_metadata", "-1", "-vf", fmt.Sprintf("%scrop='min(iw,ih)':'min(iw,ih)',scale=%d:%d", formatOption, scale, scale), "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp", "-frames:v", "1", outputName)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -99,7 +99,7 @@ func (s Service) videoThumbnail(ctx context.Context, _, inputName, outputName st
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "ffmpeg_video_thumbnail")
 	defer end(&err)
 
-	ffmpegOpts := []string{"-hwaccel", "auto"}
+	var ffmpegOpts []string
 	var customOpts []string
 
 	if _, duration, err := s.getVideoDetailsFromLocal(ctx, inputName); err != nil {
@@ -121,7 +121,7 @@ func (s Service) videoThumbnail(ctx context.Context, _, inputName, outputName st
 	ffmpegOpts = append(ffmpegOpts, "-i", inputName, "-map_metadata", "-1", "-vf", format, "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", qualityForScale(scale), "-an", "-preset", "picture", "-y", "-f", "webp")
 	ffmpegOpts = append(ffmpegOpts, customOpts...)
 	ffmpegOpts = append(ffmpegOpts, outputName)
-	cmd := exec.CommandContext(ctx, s.ffmpegPath, ffmpegOpts...)
+	cmd := s.ffmpegCommand(ctx, ffmpegOpts...)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)
@@ -180,7 +180,7 @@ func (s Service) generateHeicMap(ctx context.Context, inputName string) (output 
 
 	output = filepath.Join(output, "part_%d.jpeg")
 
-	cmd := exec.CommandContext(ctx, s.ffmpegPath, "-v", "error", "-hwaccel", "auto", "-i", inputName, "-map", "0", output)
+	cmd := s.ffmpegCommand(ctx, "-v", "error", "-i", inputName, "-map", "0", output)
 
 	buffer := bufferPool.Get().(*bytes.Buffer)
 	defer bufferPool.Put(buffer)

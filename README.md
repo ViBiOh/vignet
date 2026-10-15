@@ -35,6 +35,7 @@ Usage of vignet:
   --ffmpegPath                  string    [vignet] ffmpeg path ${VIGNET_FFMPEG_PATH} (default "/usr/bin/ffmpeg")
   --ffprobePath                 string    [vignet] ffmpeg path ${VIGNET_FFPROBE_PATH} (default "/usr/bin/ffprobe")
   --graceDuration               duration  [http] Grace duration when signal received ${VIGNET_GRACE_DURATION} (default 30s)
+  --hwaccel                               [vignet] Enable ffmpeg hardware acceleration (-hwaccel auto), requires the matching libraries on the host ${VIGNET_HWACCEL} (default false)
   --idleTimeout                 duration  [server] Idle Timeout ${VIGNET_IDLE_TIMEOUT} (default 2m0s)
   --key                         string    [server] Key file ${VIGNET_KEY}
   --loggerJson                            [logger] Log format as JSON ${VIGNET_LOGGER_JSON} (default false)
