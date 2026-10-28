@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/ViBiOh/absto/pkg/absto"
 	model "github.com/ViBiOh/absto/pkg/model"
@@ -21,4 +22,10 @@ func newAdapters(config configuration, clients clients) (adapters, error) {
 	}
 
 	return output, nil
+}
+
+func (a adapters) Close() {
+	if err := a.storage.Close(); err != nil {
+		slog.Error("close storage", slog.Any("error", err))
+	}
 }

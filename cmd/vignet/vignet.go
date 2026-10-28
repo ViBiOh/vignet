@@ -23,6 +23,8 @@ func main() {
 	adapters, err := newAdapters(config, clients)
 	logger.FatalfOnErr(ctx, err, "adapters")
 
+	defer adapters.Close()
+
 	services, err := newServices(config, clients, adapters)
 	logger.FatalfOnErr(ctx, err, "services")
 
