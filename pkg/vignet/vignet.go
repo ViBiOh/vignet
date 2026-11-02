@@ -40,13 +40,12 @@ type Config struct {
 func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) *Config {
 	var config Config
 
-	flags.New("TmpFolder", "Folder used for temporary files storage").Prefix(prefix).DocPrefix("vignet").StringVar(fs, &config.TmpFolder, "/tmp", overrides)
-	flags.New("Exchange", "AMQP Exchange Name").Prefix(prefix).DocPrefix("thumbnail").StringVar(fs, &config.AmqpExchange, "fibr", overrides)
-	flags.New("RoutingKey", "AMQP Routing Key to fibr").Prefix(prefix).DocPrefix("thumbnail").StringVar(fs, &config.AmqpRoutingKey, "thumbnail_output", overrides)
-	flags.New("FfmpegPath", "ffmpeg path").Prefix(prefix).DocPrefix("vignet").StringVar(fs, &config.FfmpegPath, "/usr/bin/ffmpeg", overrides)
-	flags.New("FfprobePath", "ffmpeg path").Prefix(prefix).DocPrefix("vignet").StringVar(fs, &config.FfprobePath, "/usr/bin/ffprobe", overrides)
-
-	flags.New("Hwaccel", "Enable ffmpeg hardware acceleration (-hwaccel auto), requires the matching libraries on the host").Prefix(prefix).DocPrefix("vignet").BoolVar(fs, &config.Hwaccel, false, overrides)
+	flags.New("TmpFolder", "Folder used for temporary files storage").Prefix(prefix).DocPrefix("vignet").FlagVar(fs, &config.TmpFolder, "/tmp", overrides)
+	flags.New("Exchange", "AMQP Exchange Name").Prefix(prefix).DocPrefix("thumbnail").FlagVar(fs, &config.AmqpExchange, "fibr", overrides)
+	flags.New("RoutingKey", "AMQP Routing Key to fibr").Prefix(prefix).DocPrefix("thumbnail").FlagVar(fs, &config.AmqpRoutingKey, "thumbnail_output", overrides)
+	flags.New("FfmpegPath", "ffmpeg path").Prefix(prefix).DocPrefix("vignet").FlagVar(fs, &config.FfmpegPath, "/usr/bin/ffmpeg", overrides)
+	flags.New("FfprobePath", "ffmpeg path").Prefix(prefix).DocPrefix("vignet").FlagVar(fs, &config.FfprobePath, "/usr/bin/ffprobe", overrides)
+	flags.New("Hwaccel", "Enable ffmpeg hardware acceleration (-hwaccel auto), requires the matching libraries on the host").Prefix(prefix).DocPrefix("vignet").FlagVar(fs, &config.Hwaccel, false, overrides)
 
 	return &config
 }
