@@ -1,8 +1,6 @@
 package model
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -35,22 +33,12 @@ func (it ItemType) String() string {
 	return ItemTypeValues[it]
 }
 
-// MarshalJSON marshals the enum as a quoted json string
-func (it ItemType) MarshalJSON() ([]byte, error) {
-	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(it.String())
-	buffer.WriteString(`"`)
-	return buffer.Bytes(), nil
+func (it ItemType) MarshalText() ([]byte, error) {
+	return []byte(it.String()), nil
 }
 
-// UnmarshalJSON unmarshal JSOn
-func (it *ItemType) UnmarshalJSON(b []byte) error {
-	var strValue string
-	if err := json.Unmarshal(b, &strValue); err != nil {
-		return fmt.Errorf("unmarshal event type: %w", err)
-	}
-
-	value, err := ParseItemType(strValue)
+func (it *ItemType) UnmarshalText(b []byte) error {
+	value, err := ParseItemType(string(b))
 	if err != nil {
 		return fmt.Errorf("parse event type: %w", err)
 	}

@@ -2,7 +2,7 @@ package vignet
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"path"
